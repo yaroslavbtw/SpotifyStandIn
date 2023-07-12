@@ -1,9 +1,11 @@
+import uuid
 from django.db import models
-from django.contrib.auth.models import User
+from Users.models import User
 
 
 class Genre(models.Model):
-    title = models.CharField(max_length=100, null=False)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    title = models.CharField(max_length=100, null=False, unique=True)
 
     def __str__(self):
         return self.title
@@ -15,6 +17,7 @@ class Album(models.Model):
         ('ep', 'EP'),
         ('single', 'Single'),
     )
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=200, null=False)
     cover = models.ImageField(upload_to='data/albums_covers/', blank=True, null=True)
     artist = models.ForeignKey('Artist', on_delete=models.CASCADE, null=False)
@@ -26,7 +29,8 @@ class Album(models.Model):
 
 
 class Artist(models.Model):
-    name = models.CharField(max_length=100, null=False)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=100, null=False, unique=True)
     photo = models.ImageField(upload_to='data/artists_photo/', blank=True, null=True)
     verified = models.BooleanField(default=False, null=False)
     followers = models.PositiveBigIntegerField(default=0, blank=True, null=False)
@@ -36,6 +40,7 @@ class Artist(models.Model):
 
 
 class Song(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=100, null=False)
     artists = models.ManyToManyField('Artist', related_name='songs')
     album = models.ForeignKey('Album', on_delete=models.DO_NOTHING, null=True, blank=True)
@@ -52,6 +57,7 @@ class Song(models.Model):
 
 
 class Playlist(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=200, null=False)
     cover = models.ImageField(upload_to='data/playlist_covers/', blank=True, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=False)
@@ -62,6 +68,7 @@ class Playlist(models.Model):
 
 
 class SongPlaylist(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     song = models.ForeignKey('Song', on_delete=models.DO_NOTHING, null=False)
     playlist = models.ForeignKey('Playlist', on_delete=models.DO_NOTHING, null=False)
     added_at = models.DateField(auto_now_add=True)
