@@ -1,0 +1,76 @@
+version: '2'
+
+networks:
+  app-tier:
+    driver: bridge
+
+services:
+  db:
+    build: postgresql
+    image: spotify_postgresql:0.0.1
+    container_name: spotify_standin_db
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+    networks:
+      - app-tier
+  pgadmin:
+    build: pgadmin
+    image: spotify_pgadmin:0.0.1
+    container_name: spotify_standin_pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    networks:
+      - app-tier
+    ports:
+      - "84:80"
+  spotify_standin:
+    image: spotifystandin:0.0.1
+    container_name: spotify_standin_django
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    networks:
+      - app-tier
+    depends_on:
+      - db
+
+  zookeeper:
+    restart: always
+    container_name: spotify_standin_zookeeper
+    image: docker.io/bitnami/zookeeper:latest
+    ports:
+      - "2181:2181"
+    volumes:
+      - "zookeeper-volume:/bitnami"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    networks:
+      - app-tier
+
+  kafka:
+    restart: always
+    image: docker.io/bitnami/kafka:latest
+    container_name: spotify_standin_kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9093:9093"
+    volumes:
+      - "kafka-volume:/bitnami"
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_LISTENERS=CLIENT://:9092,EXTERNAL://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=CLIENT://kafka:9092,EXTERNAL://localhost:9093
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=CLIENT
+    networks:
+      - app-tier
+
+volumes:
+  zookeeper-volume:
+  kafka-volume:

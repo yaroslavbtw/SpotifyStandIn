@@ -1,5 +1,4 @@
 from django.db import transaction
-from django.shortcuts import render
 from rest_framework import viewsets
 
 from Music.models import Song, Artist, Genre, Playlist
@@ -30,7 +29,7 @@ class SongViewSet(viewsets.ModelViewSet):
 
     def perform_destroy(self, instance):
         # with transaction.atomic():
-        #     song = Song.objects.get(id='e8674d13-b5e5-4713-867f-40585c453fed')
+        #     song = Song.objects.get(id=instance.id)
         #     song_artists = SongArtists.objects.filter(song=song)
         #     song_artists.delete()
         #     song.delete()
